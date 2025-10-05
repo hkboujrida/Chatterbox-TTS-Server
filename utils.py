@@ -1293,3 +1293,176 @@ class PerformanceMonitor:
         if self.logger:
             self.logger.log(log_level, full_report_str)
         return full_report_str
+
+
+# --- SRT File Processing ---
+try:
+    import pysrt
+    PYSRT_AVAILABLE = True
+    logger.info("pysrt library found and will be used for SRT subtitle parsing.")
+except ImportError:
+    PYSRT_AVAILABLE = False
+    logger.warning("pysrt library not found. SRT file processing will be disabled.")
+
+
+def parse_srt_file(srt_file_path: Path) -> Optional[List[Dict[str, Any]]]:
+    """
+    Parses an SRT subtitle file and extracts subtitle entries with timing and text.
+    
+    Args:
+        srt_file_path: Path to the SRT file to parse.
+    
+    Returns:
+        A list of dictionaries containing subtitle information:
+        - 'index': Subtitle index number
+        - 'start': Start time in seconds (float)
+        - 'end': End time in seconds (float)
+        - 'text': Subtitle text content
+        Returns None if parsing fails or pysrt is not available.
+    """
+    if not PYSRT_AVAILABLE:
+        logger.error("Cannot parse SRT file: pysrt library is not available.")
+        return None
+    
+    try:
+        subs = pysrt.open(str(srt_file_path), encoding='utf-8')
+        parsed_subtitles = []
+        
+        for sub in subs:
+            # Convert SubRipTime to seconds
+            start_seconds = (sub.start.hours * 3600 + 
+                           sub.start.minutes * 60 + 
+                           sub.start.seconds + 
+                           sub.start.milliseconds / 1000.0)
+            end_seconds = (sub.end.hours * 3600 + 
+                         sub.end.minutes * 60 + 
+                         sub.end.seconds + 
+                         sub.end.milliseconds / 1000.0)
+            
+            parsed_subtitles.append({
+                'index': sub.index,
+                'start': start_seconds,
+                'end': end_seconds,
+                'duration': end_seconds - start_seconds,
+                'text': sub.text.replace('\n', ' ').strip()
+            })
+        
+        logger.info(f"Successfully parsed {len(parsed_subtitles)} subtitle entries from {srt_file_path}")
+        return parsed_subtitles
+    
+    except Exception as e:
+        logger.error(f"Failed to parse SRT file '{srt_file_path}': {e}", exc_info=True)
+        return None
+
+
+def merge_srt_audio_segments(
+    audio_segments: List[np.ndarray],
+    subtitle_timings: List[Dict[str, Any]],
+    sample_rate: int,
+    silence_duration: float = 0.1
+) -> np.ndarray:
+    """
+    Merges generated audio segments according to SRT subtitle timings.
+    Places each audio segment at the exact time specified in the SRT file,
+    adding silence before and between segments to respect the original timing.
+    
+    Args:
+        audio_segments: List of audio arrays (numpy arrays) generated for each subtitle.
+        subtitle_timings: List of subtitle timing dictionaries from parse_srt_file.
+        sample_rate: Sample rate of the audio segments.
+        silence_duration: Not used anymore - kept for backward compatibility.
+    
+    Returns:
+        A single audio array with segments placed at their exact SRT timings.
+    """
+    if len(audio_segments) != len(subtitle_timings):
+        logger.warning(
+            f"Mismatch between audio segments ({len(audio_segments)}) "
+            f"and subtitle timings ({len(subtitle_timings)}). Using minimum length."
+        )
+        min_len = min(len(audio_segments), len(subtitle_timings))
+        audio_segments = audio_segments[:min_len]
+        subtitle_timings = subtitle_timings[:min_len]
+    
+    if not audio_segments:
+        logger.error("No audio segments to merge.")
+        return np.array([])
+    
+    # Calculate total duration needed (end time of last subtitle)
+    total_duration = subtitle_timings[-1]['end']
+    total_samples = int(total_duration * sample_rate)
+    
+    # Create empty audio array for the entire duration
+    final_audio = np.zeros(total_samples, dtype=audio_segments[0].dtype)
+    
+    # Place each audio segment at its designated time
+    for audio_seg, timing in zip(audio_segments, subtitle_timings):
+        start_sample = int(timing['start'] * sample_rate)
+        end_sample = int(timing['end'] * sample_rate)
+        available_space = end_sample - start_sample
+        
+        # Ensure we don't exceed the final audio bounds
+        if end_sample > len(final_audio):
+            logger.warning(
+                f"Audio segment for subtitle {timing['index']} extends beyond calculated "
+                f"duration. Extending final audio to accommodate."
+            )
+            # Extend final audio if needed
+            extra_samples = end_sample - len(final_audio)
+            final_audio = np.concatenate([final_audio, np.zeros(extra_samples, dtype=final_audio.dtype)])
+        
+        # Place the audio segment at the correct position
+        segment_to_place = audio_seg
+        actual_audio_duration = len(audio_seg) / sample_rate
+        expected_duration = timing['duration']
+        
+        # If generated audio is longer than the subtitle duration, we need to speed it up or truncate
+        if len(audio_seg) > available_space:
+            overage = (len(audio_seg) - available_space) / sample_rate
+            logger.warning(
+                f"Subtitle {timing['index']}: Generated audio ({actual_audio_duration:.2f}s) "
+                f"exceeds allocated time ({expected_duration:.2f}s) by {overage:.2f}s. "
+                f"Attempting time-stretch compression."
+            )
+            # Try to time-stretch if librosa is available
+            if LIBROSA_AVAILABLE:
+                try:
+                    stretch_rate = len(audio_seg) / available_space
+                    segment_to_place = librosa.effects.time_stretch(audio_seg, rate=stretch_rate)
+                    segment_to_place = segment_to_place[:available_space]  # Ensure exact fit
+                    logger.info(
+                        f"Subtitle {timing['index']}: Successfully compressed audio by {stretch_rate:.2f}x "
+                        f"using time-stretch"
+                    )
+                except Exception as e:
+                    logger.warning(f"Time-stretching failed: {e}. Truncating instead.")
+                    segment_to_place = audio_seg[:available_space]
+                    logger.warning(
+                        f"Subtitle {timing['index']}: Truncated {overage:.2f}s of audio "
+                        f"(speech may be cut off)"
+                    )
+            else:
+                # Fallback: truncate
+                segment_to_place = audio_seg[:available_space]
+                logger.warning(
+                    f"Subtitle {timing['index']}: Truncated {overage:.2f}s of audio "
+                    f"(librosa not available for time-stretch). Consider installing librosa "
+                    f"for better audio fitting."
+                )
+        elif len(audio_seg) < available_space * 0.8:
+            # Audio is significantly shorter than the slot
+            logger.debug(
+                f"Subtitle {timing['index']}: Audio ({actual_audio_duration:.2f}s) "
+                f"fits comfortably in slot ({expected_duration:.2f}s)"
+            )
+        
+        # Place the segment (pad with silence if it's shorter than the slot)
+        actual_length = min(len(segment_to_place), available_space)
+        final_audio[start_sample:start_sample + actual_length] = segment_to_place[:actual_length]
+    
+    logger.info(
+        f"Merged {len(audio_segments)} audio segments with exact SRT timing. "
+        f"Total duration: {total_duration:.2f}s ({len(final_audio)} samples)"
+    )
+    
+    return final_audio

@@ -30,21 +30,23 @@ audio_output:
   sample_rate: 24000
   max_reference_duration_sec: 30
 ui_state:
-  last_text: 'Are you tired of slow, unreliable connections? Upgrade today to Quantum
-    Fiber, the fastest internet in the galaxy! Experience seamless streaming, lag-free
-    gaming, and instant downloads. Call now and get your first three months half price!
-    Don''t wait, this offer won''t last forever!
+  last_text: 'Quantum entanglement is a physical phenomenon that occurs when pairs
+    or groups of particles are generated, interact, or share spatial proximity in
+    ways such that the quantum state of each particle cannot be described independently
+    of the state of the others, even when the particles are separated by a large distance.
+    The principles of quantum mechanics assert that an object''s properties are not
+    fixed until they are measured.
 
     '
-  last_voice_mode: predefined
-  last_predefined_voice: Emily.wav
+  last_voice_mode: clone
+  last_predefined_voice: Thomas.wav
   last_reference_file: Gianna.wav
-  last_seed: 3000
+  last_seed: 2024
   last_chunk_size: 240
   last_split_text_enabled: true
   hide_chunk_warning: false
-  hide_generation_warning: false
-  theme: light
+  hide_generation_warning: true
+  theme: dark
 ui:
   title: Chatterbox TTS Server
   show_language_select: true

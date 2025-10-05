@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:02,000
+Short text fits easily.
+
+2
+00:00:02,500 --> 00:00:04,500
+This is a medium length subtitle that should fit comfortably within two seconds.
+
+3
+00:00:05,000 --> 00:00:06,000
+This is an extremely long subtitle with way too much text that will require significant speed adjustment to fit within just one second of allocated time.
+
+4
+00:00:06,500 --> 00:00:10,000
+Normal paced sentence that fits perfectly.
+
+5
+00:00:10,500 --> 00:00:15,000
+This final subtitle has a generous amount of time allocated so the speech can be nice and relaxed at a comfortable natural pace.

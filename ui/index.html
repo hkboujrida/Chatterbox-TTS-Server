@@ -61,7 +61,28 @@
                         <div class="p-6 sm:p-8">
                             <h2 id="tts-form-header" class="card-header">Generate Speech</h2>
 
-                            <div class="mb-5">
+                            <!-- Mode Selector: Text or SRT -->
+                            <div class="mb-6">
+                                <label class="label-base mb-2">Input Mode:</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <label class="voice-mode-option selected" data-mode="text-mode">
+                                        <input type="radio" name="input_mode" value="text" class="hidden peer" checked>
+                                        <span>Text Input</span>
+                                    </label>
+                                    <label class="voice-mode-option" data-mode="srt-mode">
+                                        <input type="radio" name="input_mode" value="srt" class="hidden peer">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block mr-1">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                            </svg>
+                                            SRT File Upload
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Text Input Section -->
+                            <div id="text-input-section" class="mb-5">
                                 <label for="text" class="label-base">Text to synthesize</label>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
                                     Enter the text you want to convert to speech. For audiobooks, you can paste long
@@ -76,6 +97,50 @@
                                 </div>
                             </div>
 
+                            <!-- SRT File Upload Section -->
+                            <div id="srt-input-section" class="mb-5 hidden">
+                                <label for="srt-file-input" class="label-base">Upload SRT Subtitle File</label>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                    Upload an SRT subtitle file. Each subtitle entry will be synthesized separately and merged with appropriate timing.
+                                </p>
+                                <div class="mt-2 flex items-center gap-4">
+                                    <input type="file" id="srt-file-input" accept=".srt" class="hidden">
+                                    <button type="button" id="srt-file-upload-btn" class="btn-import inline-flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                                        </svg>
+                                        Choose SRT File
+                                    </button>
+                                    <span id="srt-file-name" class="text-sm text-slate-600 dark:text-slate-400 italic">No file selected</span>
+                                </div>
+                                <div id="srt-file-info" class="mt-3 hidden">
+                                    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3 text-sm">
+                                        <div class="flex items-start">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2 flex-shrink-0 mt-0.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                            </svg>
+                                            <div>
+                                                <p class="font-medium text-indigo-900 dark:text-indigo-100 mb-1">File loaded: <span id="srt-file-display-name" class="font-semibold"></span></p>
+                                                <p id="srt-subtitle-count" class="text-indigo-700 dark:text-indigo-300"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                                        <div class="flex items-start">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2 flex-shrink-0 mt-0.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                            <div class="text-sm text-blue-900 dark:text-blue-100">
+                                                <p class="font-medium mb-1">Timing Preservation</p>
+                                                <p class="text-blue-700 dark:text-blue-300">Audio segments will be placed at the exact times specified in your SRT file, preserving the original subtitle timing.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="flex flex-wrap items-center gap-x-6 gap-y-4 mb-6">
                                 <button type="button" id="generate-btn" class="btn-primary">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -83,21 +148,23 @@
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
                                     </svg>
-                                    Generate Speech
+                                    <span id="generate-btn-text">Generate Speech</span>
                                 </button>
-                                <label for="split-text-toggle"
-                                    class="flex items-center cursor-pointer text-sm label-base select-none">
-                                    <input type="checkbox" id="split-text-toggle" name="split_text"
-                                        class="mr-2 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-700 dark:focus:ring-offset-slate-800 dark:checked:bg-indigo-500 dark:checked:border-indigo-500">
-                                    Split text into chunks
-                                </label>
-                                <div id="chunk-size-controls" class="flex items-center space-x-2 hidden">
-                                    <label for="chunk-size-slider" class="text-sm label-base whitespace-nowrap">Chunk
-                                        Size:</label>
-                                    <input type="range" id="chunk-size-slider" name="chunk_size" min="50" max="1000"
-                                        step="10" value="120" class="slider-base w-32">
-                                    <span id="chunk-size-value"
-                                        class="text-sm font-medium text-slate-700 dark:text-slate-300 w-10 text-right tabular-nums">120</span>
+                                <div id="text-mode-controls" class="flex flex-wrap items-center gap-x-6 gap-y-4">
+                                    <label for="split-text-toggle"
+                                        class="flex items-center cursor-pointer text-sm label-base select-none">
+                                        <input type="checkbox" id="split-text-toggle" name="split_text"
+                                            class="mr-2 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-700 dark:focus:ring-offset-slate-800 dark:checked:bg-indigo-500 dark:checked:border-indigo-500">
+                                        Split text into chunks
+                                    </label>
+                                    <div id="chunk-size-controls" class="flex items-center space-x-2 hidden">
+                                        <label for="chunk-size-slider" class="text-sm label-base whitespace-nowrap">Chunk
+                                            Size:</label>
+                                        <input type="range" id="chunk-size-slider" name="chunk_size" min="50" max="1000"
+                                            step="10" value="120" class="slider-base w-32">
+                                        <span id="chunk-size-value"
+                                            class="text-sm font-medium text-slate-700 dark:text-slate-300 w-10 text-right tabular-nums">120</span>
+                                    </div>
                                 </div>
                             </div>
                             <p id="chunk-explanation" class="text-xs text-slate-500 dark:text-slate-400 mb-6 hidden">
@@ -385,6 +452,7 @@
                             <ul class="list-disc space-y-2.5 pl-5 text-sm text-slate-700 dark:text-slate-300">
                                 <li>For **Audiobooks**, use **MP3** format, enable **Split text**, and set a chunk size
                                     of ~250-500.</li>
+                                <li><strong>NEW!</strong> Use **SRT File Upload** mode to convert subtitle files into narrated audio with proper timing.</li>
                                 <li>Use **Predefined Voices** for consistent, high-quality output. You can import new
                                     ones.</li>
                                 <li>For **Voice Cloning**, upload clean reference audio (<code

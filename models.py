@@ -101,6 +101,52 @@ class ErrorResponse(BaseModel):
     detail: str = Field(..., description="A human-readable explanation of the error.")
 
 
+class SRTTTSRequest(BaseModel):
+    """Request model for generating audio from SRT subtitle files."""
+
+    voice_mode: Literal["predefined", "clone"] = Field(
+        "predefined",
+        description="Voice mode: 'predefined' for a built-in voice, 'clone' for voice cloning using a reference audio.",
+    )
+    predefined_voice_id: Optional[str] = Field(
+        None,
+        description="Filename of the predefined voice to use. Required if voice_mode is 'predefined'.",
+    )
+    reference_audio_filename: Optional[str] = Field(
+        None,
+        description="Filename of a user-uploaded reference audio for voice cloning. Required if voice_mode is 'clone'.",
+    )
+
+    output_format: Optional[Literal["wav", "opus", "mp3"]] = Field(
+        "wav", description="Desired audio output format."
+    )
+
+    # Generation parameters
+    temperature: Optional[float] = Field(
+        None, description="Overrides default temperature if provided."
+    )
+    exaggeration: Optional[float] = Field(
+        None, description="Overrides default exaggeration if provided."
+    )
+    cfg_weight: Optional[float] = Field(
+        None, description="Overrides default CFG weight if provided."
+    )
+    seed: Optional[int] = Field(None, description="Overrides default seed if provided.")
+    speed_factor: Optional[float] = Field(
+        None, description="Overrides default speed factor if provided."
+    )
+    language: Optional[str] = Field(
+        None, description="Overrides default language if provided."
+    )
+    
+    silence_between_segments: Optional[float] = Field(
+        0.0,
+        ge=0.0,
+        le=5.0,
+        description="[DEPRECATED] This parameter is no longer used. Audio segments are now placed at exact SRT timings.",
+    )
+
+
 class UpdateStatusResponse(BaseModel):
     """Response model for status updates, e.g., after saving settings."""
 

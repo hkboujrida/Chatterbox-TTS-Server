@@ -680,7 +680,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.log('Generate button clicked!');
             console.log('Current voice mode:', currentVoiceMode);
             console.log('Is generating:', isGenerating);
-            console.log('Text content:', textArea ? textArea.value.trim() : 'NO TEXTAREA');
 
             // We still prevent default in case the button has any default browser actions.
             event.preventDefault();
@@ -689,6 +688,36 @@ document.addEventListener('DOMContentLoaded', async function () {
                 showNotification("Generation is already in progress.", "warning");
                 return;
             }
+
+            // Check which input mode we're in (Text or SRT)
+            const inputModeRadio = document.querySelector('input[name="input_mode"]:checked');
+            const currentInputMode = inputModeRadio ? inputModeRadio.value : 'text';
+
+            console.log('Input mode:', currentInputMode);
+
+            // Handle SRT mode
+            if (currentInputMode === 'srt') {
+                console.log('SRT mode detected, selectedSRTFile:', selectedSRTFile);
+                if (!selectedSRTFile) {
+                    showNotification("Please select an SRT file to generate audio.", 'error');
+                    return;
+                }
+                if (currentVoiceMode === 'predefined' && (!predefinedVoiceSelect || predefinedVoiceSelect.value === 'none')) {
+                    showNotification("Please select a predefined voice.", 'error');
+                    return;
+                }
+                if (currentVoiceMode === 'clone' && (!cloneReferenceSelect || cloneReferenceSelect.value === 'none')) {
+                    showNotification("Please select a reference audio file for Voice Cloning.", 'error');
+                    return;
+                }
+                
+                // Call SRT submission function
+                submitSRTRequest();
+                return;
+            }
+
+            // Handle Text mode (original logic)
+            console.log('Text content:', textArea ? textArea.value.trim() : 'NO TEXTAREA');
             const textContent = textArea.value.trim();
             if (!textContent) {
                 showNotification("Please enter some text to generate speech.", 'error');
@@ -1028,6 +1057,195 @@ document.addEventListener('DOMContentLoaded', async function () {
                 predefinedVoiceRefreshButton.innerHTML = originalButtonIcon;
             }
         });
+    }
+
+    // --- SRT File Upload Feature ---
+    let selectedSRTFile = null;
+    const inputModeRadios = document.querySelectorAll('input[name="input_mode"]');
+    const textInputSection = document.getElementById('text-input-section');
+    const srtInputSection = document.getElementById('srt-input-section');
+    const srtFileInput = document.getElementById('srt-file-input');
+    const srtFileUploadBtn = document.getElementById('srt-file-upload-btn');
+    const srtFileName = document.getElementById('srt-file-name');
+    const srtFileInfo = document.getElementById('srt-file-info');
+    const srtFileDisplayName = document.getElementById('srt-file-display-name');
+    const srtSubtitleCount = document.getElementById('srt-subtitle-count');
+    const textModeControls = document.getElementById('text-mode-controls');
+    const generateBtnText = document.getElementById('generate-btn-text');
+
+    // Handle input mode selection
+    inputModeRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            const selectedMode = this.value;
+            
+            // Update visual selection
+            document.querySelectorAll('.voice-mode-option[data-mode]').forEach(option => {
+                if (option.dataset.mode === `${selectedMode}-mode`) {
+                    option.classList.add('selected');
+                } else if (option.dataset.mode.endsWith('-mode')) {
+                    option.classList.remove('selected');
+                }
+            });
+
+            // Toggle sections
+            if (selectedMode === 'text') {
+                textInputSection.classList.remove('hidden');
+                srtInputSection.classList.add('hidden');
+                textModeControls.classList.remove('hidden');
+                if (generateBtnText) generateBtnText.textContent = 'Generate Speech';
+            } else if (selectedMode === 'srt') {
+                textInputSection.classList.add('hidden');
+                srtInputSection.classList.remove('hidden');
+                textModeControls.classList.add('hidden');
+                if (generateBtnText) generateBtnText.textContent = 'Generate from SRT';
+            }
+        });
+    });
+
+    // Set initial state for input mode
+    const checkedInputMode = document.querySelector('input[name="input_mode"]:checked');
+    if (checkedInputMode) {
+        const selectedOption = document.querySelector(`.voice-mode-option[data-mode="${checkedInputMode.value}-mode"]`);
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+        }
+    }
+
+    // SRT file upload button
+    if (srtFileUploadBtn && srtFileInput) {
+        srtFileUploadBtn.addEventListener('click', () => {
+            srtFileInput.click();
+        });
+    }
+
+    // Handle SRT file selection
+    if (srtFileInput) {
+        srtFileInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.name.toLowerCase().endsWith('.srt')) {
+                showNotification('Please select a valid SRT subtitle file.', 'error');
+                srtFileInput.value = '';
+                return;
+            }
+
+            selectedSRTFile = file;
+            if (srtFileName) {
+                srtFileName.textContent = file.name;
+                srtFileName.classList.remove('italic');
+            }
+
+            // Try to parse and show info
+            try {
+                const text = await file.text();
+                const subtitleCount = (text.match(/^\d+$/gm) || []).length;
+                
+                if (srtFileDisplayName) srtFileDisplayName.textContent = file.name;
+                if (srtSubtitleCount) {
+                    srtSubtitleCount.textContent = `${subtitleCount} subtitle ${subtitleCount === 1 ? 'entry' : 'entries'} detected`;
+                }
+                if (srtFileInfo) srtFileInfo.classList.remove('hidden');
+                
+                showNotification(`SRT file loaded: ${subtitleCount} subtitle entries found.`, 'success', 3000);
+            } catch (error) {
+                console.error('Error reading SRT file:', error);
+                showNotification('File loaded but could not preview contents.', 'warning', 3000);
+            }
+        });
+    }
+
+    // SRT Request submission function
+    async function submitSRTRequest() {
+        if (!selectedSRTFile) {
+            showNotification("No SRT file selected.", 'error');
+            return;
+        }
+
+        isGenerating = true;
+        showLoadingOverlay();
+        loadingMessage.textContent = 'Processing SRT file...';
+        loadingStatusText.textContent = 'Generating audio for each subtitle entry. This may take several minutes.';
+
+        const startTime = Date.now();
+        const formData = new FormData();
+        
+        // Add the SRT file
+        formData.append('srt_file', selectedSRTFile);
+        
+        // Add voice parameters
+        formData.append('voice_mode', currentVoiceMode);
+        if (currentVoiceMode === 'predefined') {
+            formData.append('predefined_voice_id', predefinedVoiceSelect.value);
+        } else if (currentVoiceMode === 'clone') {
+            formData.append('reference_audio_filename', cloneReferenceSelect.value);
+        }
+        
+        // Add generation parameters
+        if (outputFormatSelect) formData.append('output_format', outputFormatSelect.value);
+        if (temperatureSlider) formData.append('temperature', temperatureSlider.value);
+        if (exaggerationSlider) formData.append('exaggeration', exaggerationSlider.value);
+        if (cfgWeightSlider) formData.append('cfg_weight', cfgWeightSlider.value);
+        if (seedInput && seedInput.value) formData.append('seed', seedInput.value);
+        if (speedFactorSlider) formData.append('speed_factor', speedFactorSlider.value);
+        if (languageSelect) formData.append('language', languageSelect.value);
+        // Note: silence_between_segments is no longer used - timing is now based on SRT timestamps
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/tts/srt`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                let errorMessage = `Server error: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorMessage;
+                } catch (e) {
+                    errorMessage = await response.text() || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const endTime = Date.now();
+            const genTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+
+            // Get filename from Content-Disposition header
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'generated_from_srt.wav';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch) filename = filenameMatch[1];
+            }
+
+            const resultDetails = {
+                outputUrl: audioUrl,
+                filename: filename,
+                genTime: genTimeSeconds,
+                submittedVoiceMode: currentVoiceMode,
+                submittedPredefinedVoice: currentVoiceMode === 'predefined' ? predefinedVoiceSelect.value : null,
+                submittedCloneFile: currentVoiceMode === 'clone' ? cloneReferenceSelect.value : null
+            };
+
+            initializeWaveSurfer(audioUrl, resultDetails);
+            showNotification(`Audio generated successfully from SRT file in ${genTimeSeconds}s!`, 'success', 6000);
+            
+            // Scroll to player
+            if (audioPlayerContainer) {
+                audioPlayerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+        } catch (error) {
+            console.error('Error generating audio from SRT:', error);
+            showNotification(`Error generating audio: ${error.message}`, 'error', 0);
+        } finally {
+            isGenerating = false;
+            hideLoadingOverlay();
+        }
     }
 
     await fetchInitialData();

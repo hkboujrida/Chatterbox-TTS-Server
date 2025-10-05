@@ -48,6 +48,7 @@ hf_transfer                     # Speed up file transfers with the Hugging Face 
 PyYAML                        # YAML configuration file support
 watchdog                      # File system event monitoring
 unidecode                     # Unicode text transliteration
+pysrt                         # SRT subtitle file parsing
 inflect                       # Natural language inflection
 tqdm                          # Progress bars for loops
 
