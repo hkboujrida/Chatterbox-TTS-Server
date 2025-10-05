@@ -889,6 +889,19 @@ async def custom_tts_endpoint(
     )
     headers = {"Content-Disposition": f'attachment; filename="{download_filename}"'}
 
+    # Save the generated audio to outputs folder
+    try:
+        outputs_dir = get_output_path(ensure_absolute=True)
+        output_file_path = outputs_dir / download_filename
+        
+        with open(output_file_path, 'wb') as f:
+            f.write(encoded_audio_bytes)
+        
+        logger.info(f"Saved generated audio to: {output_file_path}")
+    except Exception as e_save:
+        logger.warning(f"Failed to save audio to outputs folder: {e_save}")
+        # Continue anyway - file will still be streamed to user
+
     logger.info(
         f"Successfully generated audio: {download_filename}, {len(encoded_audio_bytes)} bytes, type {media_type}."
     )
@@ -1220,6 +1233,19 @@ async def srt_tts_endpoint(
             f"tts_srt_{srt_base_name}_{timestamp_str}.{output_format}"
         )
         headers = {"Content-Disposition": f'attachment; filename="{download_filename}"'}
+
+        # Save the generated audio to outputs folder
+        try:
+            outputs_dir = get_output_path(ensure_absolute=True)
+            output_file_path = outputs_dir / download_filename
+            
+            with open(output_file_path, 'wb') as f:
+                f.write(encoded_audio_bytes)
+            
+            logger.info(f"Saved generated audio to: {output_file_path}")
+        except Exception as e_save:
+            logger.warning(f"Failed to save audio to outputs folder: {e_save}")
+            # Continue anyway - file will still be streamed to user
 
         logger.info(
             f"Successfully generated audio from SRT: {download_filename}, "
