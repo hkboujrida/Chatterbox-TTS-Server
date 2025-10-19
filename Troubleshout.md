@@ -1,0 +1,1 @@
+conda activate chtx && pip install onnx --use-pep517

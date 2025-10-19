@@ -30,21 +30,59 @@ audio_output:
   sample_rate: 24000
   max_reference_duration_sec: 30
 ui_state:
-  last_text: 'Are you tired of slow, unreliable connections? Upgrade today to Quantum
-    Fiber, the fastest internet in the galaxy! Experience seamless streaming, lag-free
-    gaming, and instant downloads. Call now and get your first three months half price!
-    Don''t wait, this offer won''t last forever!
-
-    '
-  last_voice_mode: predefined
+  last_text: "Quelques ajustements seront faits pour donner un r\xF4le actif \xE0\
+    \ Souleymeine, m\xEAme \xE0 3 ans, en gardant Jana comme figure centrale de la\
+    \ force, et en respectant une longueur un peu plus \xE9tendue pour enrichir l'histoire.\n\
+    \nVoici l'histoire de Jana, Souleymeine et Daoud :\n\nJana, 9 ans, \xE9tait la\
+    \ grande s\u0153ur responsable. Ses petits fr\xE8res, Souleymeine, 3 ans, et le\
+    \ petit Daoud, 1 an, remplissaient sa vie de rires. Ils habitaient un joli village\
+    \ nich\xE9 au creux d'une vall\xE9e.\n\nUn apr\xE8s-midi, pendant que Jana les\
+    \ surveillait, le drame survint. Un vent \xE2cre annon\xE7a l'arriv\xE9e du Dragon\
+    \ des Cr\xEAtes, une cr\xE9ature de l\xE9gende aux \xE9cailles de pierre et au\
+    \ souffle de braise. Le monstre s'empara du berceau de Daoud, s'envolant vers\
+    \ sa grotte, laissant derri\xE8re lui une \xE9paisse fum\xE9e.\n\nLe c\u0153ur\
+    \ de Jana se serra, mais elle n'h\xE9sita pas. Elle devait ramener Daoud.\n\n\xAB\
+    \ Viens, Souleymeine, \xBB dit-elle \xE0 son fr\xE8re, les larmes aux yeux, \xAB\
+    \ Nous y allons ensemble. Tu vas m'aider. \xBB\n\nSouleymeine, bien que terroris\xE9\
+    , hocha la t\xEAte, serrant sa s\u0153ur. Jana savait qu'il \xE9tait trop petit\
+    \ pour grimper seul, alors elle l'attacha fermement \xE0 son dos \xE0 l'aide d'une\
+    \ longue \xE9charpe de laine.\n\nL'ascension fut \xE9puisante. La montagne \xE9\
+    tait raide et chaude. Jana se disait : \xAB Je ne peux pas faiblir. \xBB Quand\
+    \ le chemin devint trop obscur, Souleymeine, accroch\xE9 \xE0 elle, pointa du\
+    \ doigt : \xAB Regarde ! La lumi\xE8re ! \xBB Il avait rep\xE9r\xE9 un reflet\
+    \ sur une flaque d'eau, indiquant le bon chemin.\n\nArriv\xE9s devant l'antre\
+    \ du dragon, ils virent la b\xEAte dormir, le berceau de Daoud \xE0 ses c\xF4\
+    t\xE9s. Jana se rappela que le dragon \xE9tait allergique aux *fleurs de givre*,\
+    \ une petite plante rare qui poussait plus bas sur la montagne. Elle n'en avait\
+    \ pas !\n\nC'est alors que Souleymeine, sur le dos de sa s\u0153ur, remarqua un\
+    \ tas de **poils de ch\xE8vre** \xE9parpill\xE9s pr\xE8s de l'entr\xE9e. \xAB\
+    \ \xC7a gratte ! \xBB chuchota-t-il, se souvenant de la fois o\xF9 il en avait\
+    \ touch\xE9.\n\nJana eut une id\xE9e lumineuse. Elle d\xE9tacha Souleymeine. \xAB\
+    \ Tu es mon petit h\xE9ros. Vois-tu ce grand trou ? D\xE8s que j'aurai Daoud,\
+    \ tu devras jeter ces poils juste l\xE0, dans le trou de son nez ! \xBB dit-elle\
+    \ en d\xE9signant la narine du dragon.\n\nSouleymeine, malgr\xE9 ses 3 ans, comprit\
+    \ l'importance de sa mission. Il ramassa une grosse poign\xE9e de poils.\n\nJana\
+    \ se glissa vers Daoud. Le dragon commen\xE7a \xE0 remuer. C'\xE9tait le moment\
+    \ ! Jana saisit le berceau. Au m\xEAme instant, Souleymeine, avec une bravoure\
+    \ incroyable, se pencha et lan\xE7a toute sa poign\xE9e de poils dans la narine\
+    \ du monstre.\n\n*ACHOUM !*\n\nLe dragon \xE9ternua si fort que la grotte trembla\
+    \ ! Il \xE9tait momentan\xE9ment aveugl\xE9 et d\xE9sorient\xE9.\n\nJana attrapa\
+    \ Souleymeine, le remit sur son dos et d\xE9vala la montagne avec Daoud. Le dragon,\
+    \ pris par une terrible crise d'\xE9ternuements, ne put les suivre.\n\nDe retour\
+    \ au village, ils furent accueillis en triomphe. Jana avait \xE9t\xE9 la force,\
+    \ mais c'est l'astuce de Souleymeine qui avait sauv\xE9 Daoud. Ensemble, la grande\
+    \ s\u0153ur courageuse et le petit fr\xE8re ing\xE9nieux, ils avaient prouv\xE9\
+    \ qu'aucune peur, ni aucun dragon, n'\xE9tait assez grand pour vaincre l'amour\
+    \ d'une fratrie."
+  last_voice_mode: clone
   last_predefined_voice: Emily.wav
-  last_reference_file: Gianna.wav
-  last_seed: 3000
+  last_reference_file: hb-fr.wav
+  last_seed: 1775
   last_chunk_size: 240
   last_split_text_enabled: true
   hide_chunk_warning: false
-  hide_generation_warning: false
-  theme: light
+  hide_generation_warning: true
+  theme: dark
 ui:
   title: Chatterbox TTS Server
   show_language_select: true
